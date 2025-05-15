@@ -7,7 +7,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(cors());
-app.use(express());
+app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.nf06mtl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -24,6 +24,20 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+
+    const coffeesCollection = client.db("coffeeDB").collection("coffees");
+
+    app.get("/coffees", async (req, res) => {
+      const result = await coffeesCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.post("/coffees", async (req, res) => {
+      const newCoffee = req.body;
+      const result = await coffeesCollection.insertOne(newCoffee);
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
